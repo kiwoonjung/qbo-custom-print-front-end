@@ -1,7 +1,8 @@
-const clientId = import.meta.env.VITE_CLIENT_ID;
+const clientId = "ABsM995q0AersWbrlUgxLSpii2n7qSZqQhabDf9KKAyTBxbtOx";
 console.log("Service worker is running!");
-console.log("Client Id", import.meta.env.VITE_CLIENT_ID);
+
 const redirectUri = chrome.identity.getRedirectURL(); // Automatically generates a redirect URI for your extension
+console.log("redirectUri", redirectUri);
 
 const authUrl = `https://appcenter.intuit.com/connect/oauth2?client_id=${clientId}&response_type=code&scope=com.intuit.quickbooks.accounting&redirect_uri=${redirectUri}&state=chrome_extension`;
 
@@ -28,7 +29,7 @@ chrome.identity.launchWebAuthFlow(
 );
 
 const exchangeCodeForToken = async (authorizationCode) => {
-  const clientSecret = import.meta.env.VITE_CLIENT_SECRET;
+  const clientSecret = "FaO2w7vUh0NtHExUAi6tt0DuoHSgkgztSIlCzcpK";
   const params = new URLSearchParams();
   params.append("grant_type", "authorization_code");
   params.append("code", authorizationCode);
@@ -50,6 +51,7 @@ const exchangeCodeForToken = async (authorizationCode) => {
   console.log("Access Token:", data.access_token);
   console.log("Refresh Token:", data.refresh_token);
   console.log("Realm ID:", data.realmId);
+  console.log("Data", data);
 
   // Store the tokens securely (e.g., in chrome.storage.local)
   chrome.storage.local.set({
@@ -61,13 +63,70 @@ const exchangeCodeForToken = async (authorizationCode) => {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "startOAuth") {
-    console.log("hello");
-    // Start the OAuth flow
     chrome.identity.launchWebAuthFlow(
       { url: authUrl, interactive: true },
       (redirectUrl) => {
-        // Handle the OAuth flow
+        if (chrome.runtime.lastError) {
+          sendResponse({ success: false, error: chrome.runtime.lastError });
+          return;
+        }
+
+        // Extract the authorization code and exchange it for tokens
+        const urlParams = new URLSearchParams(new URL(redirectUrl).search);
+        const authorizationCode = urlParams.get("code");
+
+        if (authorizationCode) {
+          exchangeCodeForToken(authorizationCode)
+            .then(() => {
+              sendResponse({ success: true });
+            })
+            .catch((error) => {
+              sendResponse({ success: false, error: error.message });
+            });
+        } else {
+          sendResponse({
+            success: false,
+            error: "No authorization code found",
+          });
+        }
       }
     );
+
+    // Return true to indicate that sendResponse will be called asynchronously
+    return true;
+  }
+});
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "getInvoices") {
+    const { accessToken } = request;
+
+    // Construct the URL for fetching invoices
+    const url = `https://sandbox-quickbooks.api.intuit.com/v3/company/9341454153583585/query?query=SELECT * FROM Invoice&minorversion=75`;
+
+    // Use fetch to make the API request
+    fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/json",
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        sendResponse({ success: true, data });
+      })
+      .catch((error) => {
+        console.error("Error fetching invoices:", error);
+        sendResponse({ success: false, error: error.message });
+      });
+
+    // Return true to indicate that sendResponse will be called asynchronously
+    return true;
   }
 });
