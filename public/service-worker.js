@@ -35,30 +35,55 @@ const exchangeCodeForToken = async (authorizationCode) => {
   params.append("code", authorizationCode);
   params.append("redirect_uri", redirectUri);
 
-  const response = await fetch(
-    "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
-      },
-      body: params,
-    }
-  );
+  try {
+    // Exchange authorization code for access token
+    const tokenResponse = await fetch(
+      "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+        },
+        body: params,
+      }
+    );
 
-  const data = await response.json();
-  console.log("Access Token:", data.access_token);
-  console.log("Refresh Token:", data.refresh_token);
-  console.log("Realm ID:", data.realmId);
-  console.log("Data", data);
+    const tokenData = await tokenResponse.json();
+    const {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      realmId = "9341454153583585",
+    } = tokenData;
 
-  // Store the tokens securely (e.g., in chrome.storage.local)
-  chrome.storage.local.set({
-    accessToken: data.access_token,
-    refreshToken: data.refresh_token,
-    realmId: data.realmId,
-  });
+    // const companyInfoResponse = await fetch(
+    //   `http://localhost:8000/companyInfo?accessToken=${accessToken}&realmId=9341454153583585`
+    // )
+    //   .then((response) => {
+    //     response;
+    //     console.log(response);
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error fetching a company information:", error);
+    //   });
+
+    console.log("Access Token:", accessToken);
+    console.log("Refresh Token:", refreshToken);
+    console.log("Realm ID:", realmId);
+
+    // Store tokens and additional info securely
+    chrome.storage.local.set({
+      accessToken,
+      refreshToken,
+      realmId,
+    });
+  } catch (error) {
+    console.error(
+      "Error during token exchange or fetching additional info:",
+      error
+    );
+    throw error;
+  }
 };
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -98,31 +123,25 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "getInvoices") {
+  if (request.action === "getInvoice") {
     const { accessToken } = request;
 
-    // Construct the URL for fetching invoices
-    const url = `https://sandbox-quickbooks.api.intuit.com/v3/company/9341454153583585/query?query=SELECT * FROM Invoice&minorversion=75`;
-
-    // Use fetch to make the API request
-    fetch(url, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: "application/json",
-      },
-    })
+    // Make a request to your backend server
+    fetch(
+      `http://localhost:8000/invoice?accessToken=${accessToken}&realmId=9341454153583585`
+    )
       .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        return response.json();
+        return response.json(); // Parse the response as JSON
       })
       .then((data) => {
+        console.log("Response Data:", data); // Log the response data
         sendResponse({ success: true, data });
       })
       .catch((error) => {
-        console.error("Error fetching invoices:", error);
+        console.error("Error fetching invoice:", error);
         sendResponse({ success: false, error: error.message });
       });
 
