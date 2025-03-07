@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@mui/material";
+import { jsPDF } from "jspdf";
 
 const Dashboard = ({ handleLogout }) => {
   const [invoice, setInvoice] = useState([]);
@@ -37,11 +38,16 @@ const Dashboard = ({ handleLogout }) => {
       console.error("Error fetching invoice:", error);
     }
   };
+
+  const handlePrintBOL = async () => {};
   return (
     <>
       <p class="text-2xl pb-4">Welcome to QBO Custom Print</p>
       <p class="pb-4">You are logged in!</p>
       <div class="flex justify-center gap-2">
+        {/* <Button variant="contained" color="success" onClick={handleGetData}>
+          Get Data
+        </Button> */}
         <Button variant="contained" color="success" onClick={handleGetData}>
           Get Data
         </Button>
