@@ -1,6 +1,5 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Button } from "@mui/material";
-import { jsPDF } from "jspdf";
 
 const Dashboard = ({ handleLogout }) => {
   const [invoice, setInvoice] = useState([]);

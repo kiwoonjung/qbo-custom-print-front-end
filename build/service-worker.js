@@ -1,5 +1,12 @@
 console.log("Service worker is running!");
 
+chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+  let currentTab = tabs[0]; // Get the active tab
+  if (currentTab) {
+    console.log("Current URL:", currentTab.url); // Logs the correct tab URL
+  }
+});
+
 // Fetch the clientId from your backend
 fetch("http://localhost:8000/auth/get-client-id")
   .then((response) => {
@@ -147,7 +154,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     // Make a request to your backend server
     fetch(
-      `http://localhost:8000/invoice?accessToken=${accessToken}&realmId=9341454187481835`
+      `http://localhost:8000/invoice?accessToken=${accessToken}&realmId=9341453571717976`
     )
       .then((response) => {
         if (!response.ok) {

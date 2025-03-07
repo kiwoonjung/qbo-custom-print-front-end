@@ -9,7 +9,11 @@
   "action": {
     "default_popup": "index.html"
   },
-  "permissions": ["identity", "storage"],
+  "permissions": [
+    "identity",
+    "storage",
+    "tabs"
+  ],
   "host_permissions": [
     "https://oauth.platform.intuit.com/*",
     "https://quickbooks.api.intuit.com/*"
