@@ -63,10 +63,11 @@ const exchangeCodeForToken = async (authorizationCode, redirectUri) => {
     }
 
     const tokenData = await response.json();
+    console.log("tokenData", tokenData);
     const {
       access_token: accessToken,
       refresh_token: refreshToken,
-      realmId,
+      realmId: realmId,
     } = tokenData;
 
     console.log("Access Token:", accessToken);
@@ -143,11 +144,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "getInvoice") {
-    const { accessToken } = request;
+    let { accessToken, realmId, invoiceId } = request; // Destructure the request
+    // Check if realmId is undefined and set it to "123"
+    // if (typeof realmId === "undefined") {
+    //   realmId = "9341454187481835";
+    //   console.log("realmId is undefined, setting it to '9341454187481835'");
+    // } else {
+    //   console.log("get realmId !!", realmId);
+    // }
 
     // Make a request to your backend server
     fetch(
-      `http://localhost:8000/invoice?accessToken=${accessToken}&realmId=9341453571717976`
+      `http://localhost:8000/invoice?accessToken=${accessToken}&realmId=${realmId}&invoiceId=${invoiceId}`
     )
       .then((response) => {
         if (!response.ok) {
@@ -166,5 +174,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     // Return true to indicate that sendResponse will be called asynchronously
     return true;
+  }
+});
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "getCurrentTabURL") {
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+      let currentTab = tabs[0];
+      if (currentTab) {
+        // console.log("Background - Current URL:", currentTab.url);
+        sendResponse({ url: currentTab.url });
+      } else {
+        sendResponse({ error: "No active tab found" });
+      }
+    });
+
+    return true; // Keep the response channel open for async response
   }
 });

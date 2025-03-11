@@ -9,11 +9,13 @@
   "action": {
     "default_popup": "index.html"
   },
-  "permissions": [
-    "identity",
-    "storage",
-    "tabs"
+  "web_accessible_resources": [
+    {
+      "resources": ["templates/template.html"],
+      "matches": ["<all_urls>"]
+    }
   ],
+  "permissions": ["identity", "storage", "tabs", "scripting"],
   "host_permissions": [
     "https://oauth.platform.intuit.com/*",
     "https://quickbooks.api.intuit.com/*"
