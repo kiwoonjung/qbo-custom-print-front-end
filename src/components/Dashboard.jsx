@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
+import Modal from "./Modal"; // Import the modal component
 
 const Dashboard = ({ handleLogout }) => {
   const [showGetDataButton, setShowGetDataButton] = useState(false);
   const [invoiceId, setInvoiceId] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [templateHtml, setTemplateHtml] = useState("");
 
   const handleGetData = async () => {
     try {
@@ -35,13 +38,27 @@ const Dashboard = ({ handleLogout }) => {
         // Store invoice data in local storage
         chrome.storage.local.set({ invoiceData: response.data }, () => {
           console.log("Stored invoice data:", response.data);
-          printInvoice();
+          loadTemplate(); // Load the template when invoice data is ready
         });
       } else {
         console.error("Failed to fetch invoice data.");
       }
     } catch (error) {
       console.error("Error fetching invoice:", error);
+    }
+  };
+
+  const loadTemplate = async () => {
+    try {
+      const response = await fetch(
+        chrome.runtime.getURL("templates/template.html")
+      );
+
+      const htmlContent = await response.text();
+      setTemplateHtml(htmlContent);
+      setShowModal(true); // Open modal after loading template
+    } catch (error) {
+      console.error("Error loading template:", error);
     }
   };
 
@@ -64,77 +81,20 @@ const Dashboard = ({ handleLogout }) => {
     });
   }, []);
 
-  const printInvoice = async () => {
-    try {
-      // Get stored invoice data
-      const { invoiceData } = await new Promise((resolve) =>
-        chrome.storage.local.get("invoiceData", resolve)
-      );
-
-      if (!invoiceData) {
-        console.error("No invoice data available");
-        return;
-      }
-
-      // Fetch the external HTML template
-      const response = await fetch(
-        chrome.runtime.getURL("templates/template.html")
-      );
-      if (!response.ok)
-        throw new Error(`Failed to load template: ${response.status}`);
-
-      let templateHtml = await response.text();
-
-      // Replace placeholders with actual invoice data
-      templateHtml = templateHtml
-        .replace("{{date}}", invoiceData.date)
-        .replace("{{invoiceId}}", invoiceData.id)
-        .replace(
-          "{{items}}",
-          invoiceData.items
-            .map(
-              (item) =>
-                `<tr><td>${item.name}</td><td>${item.quantity}</td><td>${item.price}</td></tr>`
-            )
-            .join("")
-        );
-
-      // Open a new print window and insert the processed template
-      const printWindow = window.open("", "_blank");
-      printWindow.document.open();
-      printWindow.document.write(templateHtml);
-      printWindow.document.close();
-
-      // Automatically print and close the window
-      printWindow.onload = () => {
-        printWindow.print();
-        setTimeout(() => printWindow.close(), 500);
-      };
-    } catch (error) {
-      console.error("Error printing invoice:", error);
-    }
-  };
-
   return (
     <>
       <p className="text-2xl pb-4">Welcome to QBO Custom Print</p>
       <p className="pb-4">You are logged in!</p>
       <div className="flex justify-center gap-2">
         {showGetDataButton && (
-          <button
-            onClick={handleGetData}
-            className="bg-green-500 text-white px-4 py-2 rounded"
-          >
-            Get Data
-          </button>
+          <button onClick={handleGetData}>Create Custom Invoice</button>
         )}
-        <button
-          onClick={handleLogout}
-          className="border border-red-500 text-red-500 px-4 py-2 rounded"
-        >
-          Logout
-        </button>
       </div>
+
+      {/* Modal Component */}
+      <Modal show={showModal} onClose={() => setShowModal(false)}>
+        <div dangerouslySetInnerHTML={{ __html: templateHtml }} />
+      </Modal>
     </>
   );
 };

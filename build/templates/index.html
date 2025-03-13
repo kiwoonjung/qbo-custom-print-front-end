@@ -456,4 +456,18 @@
     border-bottom: 1px solid #000000;
     padding: 13px 10px;
   }
+  .modal-dialog {
+    max-width: 90vw; /* Ensures it's not too wide */
+    height: 90vh; /* Takes up most of the screen */
+  }
+
+  .modal-content {
+    height: 100%;
+    overflow: auto; /* Enables scrolling inside */
+  }
+
+  .modal-body {
+    max-height: 75vh; /* Prevents excessive height */
+    overflow-y: auto; /* Enables scrolling */
+  }
 </style>
