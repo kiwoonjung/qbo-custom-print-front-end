@@ -81,12 +81,27 @@ const Dashboard = ({ handleLogout }) => {
     });
   }, []);
 
+  const handlePrint = () => {
+    // Check if templateHtml exists (optional if you want to ensure it's loaded before print)
+    if (!templateHtml) {
+      console.error("Template HTML is empty");
+      return;
+    }
+
+    // Open a new tab to load the template.html directly from the public folder
+    window.open("/templates/template.html", "_blank");
+  };
+
   return (
     <>
-      <p className="text-2xl pb-4">Welcome to QBO Custom Print</p>
-      <p className="pb-4">You are logged in!</p>
+      {!showModal && (
+        <div className="text-center">
+          <p className="text-2xl pb-4">Welcome to QBO Custom Print</p>
+          <p className="pb-4">You are logged in!</p>
+        </div>
+      )}
       <div className="flex justify-center gap-2">
-        {showGetDataButton && (
+        {showGetDataButton && !showModal && (
           <button onClick={handleGetData}>Create Custom Invoice</button>
         )}
       </div>
@@ -94,6 +109,11 @@ const Dashboard = ({ handleLogout }) => {
       {/* Modal Component */}
       <Modal show={showModal} onClose={() => setShowModal(false)}>
         <div dangerouslySetInnerHTML={{ __html: templateHtml }} />
+        <div className="flex justify-center">
+          <button onClick={handlePrint} className="flex justify-center mt-4">
+            Print
+          </button>
+        </div>
       </Modal>
     </>
   );
