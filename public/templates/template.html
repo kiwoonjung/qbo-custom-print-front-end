@@ -38,7 +38,7 @@
           <h1 class="bol-info-title">Bill of Lading</h1>
           <div class="bol-info-flex">
             <h5>BL & Packing Slip No.</h5>
-            <h5>7881-3</h5>
+            <h5 class="Slip No">7881-3</h5>
           </div>
           <div class="bol-info-flex">
             <h5>Ship Date</h5>
@@ -88,28 +88,14 @@
       </div>
 
       <div class="item-primary-container">
-        <div class="item-table-continaer">
-          <div class="item-code-container text-center">
-            <h5 class="item-table-title">Item Code</h5>
-            <p class="item-text text-left">MISC-P</p>
-          </div>
-          <div class="item-desc-container text-center">
-            <h5 class="item-table-title">Description</h5>
-            <p id="itemText" class="item-text text-left"></p>
-          </div>
-          <div class="item-qty-container text-center">
-            <h5 class="item-table-title">Qty</h5>
-            <p class="item-text text-right">18</p>
-          </div>
-          <div class="item-weight-container text-center">
-            <h5 class="item-table-title">Weight</h5>
-            <input
-              class="item-text text-right input-weight"
-              style="max-width: 57px"
-              value="18"
-            />
-          </div>
-        </div>
+        <table class="item-table-container">
+          <tr class="item-row-container">
+            <th class="item-table-header code">Item Code</th>
+            <th class="item-table-header desc">Description</th>
+            <th class="item-table-header qty">Qty</th>
+            <th class="item-table-header weight">Weight</th>
+          </tr>
+        </table>
 
         <div class="item-extra-info-container">
           <div class="item-extra-info-skid">
@@ -173,7 +159,7 @@
           </div>
         </div>
 
-        <div class="consignee-contianer">
+        <div class="consignee-container">
           <h5 class="consignee-title"><strong>Consignee:</strong></h5>
           <div class="consingee-input-container">
             <input class="consignee-input" />
@@ -373,7 +359,7 @@
     padding-bottom: 26px;
   }
 
-  .item-table-continaer {
+  .item-table-container {
     display: flex;
     height: 300px;
     border: 1px solid #000000;
@@ -453,9 +439,17 @@
   }
 
   .item-text {
-    padding: 8px 10px;
+    padding: 8px;
     margin: 0px;
     font-size: 14px;
+  }
+
+  .item-weight {
+    padding: 4px;
+    margin: 0px;
+    font-size: 14px;
+    width: 63px;
+    padding-right: 0;
   }
 
   /* Notice */
@@ -508,7 +502,7 @@
     justify-content: space-between;
   }
 
-  .consignee-contianer,
+  .consignee-container,
   .carrier-container,
   .shipper-container {
     width: 32%;
@@ -605,5 +599,58 @@
   .carrier-name-container {
     display: flex;
     align-items: center;
+  }
+
+  tr {
+    /* background: #e7e7e7; */
+  }
+
+  tbody {
+    border-spacing: 0;
+  }
+
+  table {
+    border: none;
+    border-collapse: collapse;
+  }
+  table th {
+    border-bottom: 1px solid #000;
+    border-right: 1px solid #000;
+  }
+
+  table th:last-child {
+    border-right: none;
+  }
+
+  table td {
+    border-left: 1px solid #000;
+    border-right: 1px solid #000;
+  }
+
+  table td:first-child {
+    border-left: none;
+  }
+
+  table td:last-child {
+    border-right: none;
+  }
+
+  .item-table-header {
+    font-weight: 400;
+    padding: 4px 0;
+    font-size: 14.4px;
+  }
+
+  .item-table-header.code {
+    width: 158px;
+  }
+
+  .item-table-header.desc {
+    width: 476px;
+  }
+
+  .item-table-header.qty,
+  .item-table-header.weight {
+    width: 81px;
   }
 </style>
