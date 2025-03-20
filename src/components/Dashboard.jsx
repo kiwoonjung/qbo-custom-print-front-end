@@ -35,10 +35,19 @@ const Dashboard = ({ handleLogout }) => {
       });
 
       if (response.success) {
-        // Store invoice data in local storage
-        chrome.storage.local.set({ invoiceData: response.data }, () => {
+        chrome.storage.local.set({ invoiceData: response.data }, async () => {
           console.log("Stored invoice data:", response.data);
-          loadTemplate(); // Load the template when invoice data is ready
+
+          // Wait for the template to load
+          const loadedTemplate = await loadTemplate();
+
+          // Ensure the template is actually loaded before printing
+          if (loadedTemplate) {
+            console.log("Template successfully loaded, printing...");
+            handlePrint();
+          } else {
+            console.error("Template HTML is still empty after loading.");
+          }
         });
       } else {
         console.error("Failed to fetch invoice data.");
@@ -53,12 +62,20 @@ const Dashboard = ({ handleLogout }) => {
       const response = await fetch(
         chrome.runtime.getURL("templates/template.html")
       );
-
       const htmlContent = await response.text();
+
+      if (!htmlContent) {
+        console.error("Fetched template HTML is empty.");
+        return null;
+      }
+
       setTemplateHtml(htmlContent);
       setShowModal(true); // Open modal after loading template
+
+      return htmlContent; // Return the loaded template
     } catch (error) {
       console.error("Error loading template:", error);
+      return null;
     }
   };
 
@@ -81,14 +98,20 @@ const Dashboard = ({ handleLogout }) => {
     });
   }, []);
 
+  useEffect(() => {
+    if (templateHtml) {
+      console.log("Template updated, now printing...");
+      handlePrint();
+    }
+  }, [templateHtml]);
+
   const handlePrint = () => {
-    // Check if templateHtml exists (optional if you want to ensure it's loaded before print)
     if (!templateHtml) {
-      console.error("Template HTML is empty");
+      console.error("Template HTML is empty, delaying print...");
       return;
     }
 
-    // Open a new tab to load the template.html directly from the public folder
+    console.log("Opening print preview with template:", templateHtml);
     window.open("/templates/template.html", "_blank");
   };
 
@@ -107,14 +130,14 @@ const Dashboard = ({ handleLogout }) => {
       </div>
 
       {/* Modal Component */}
-      <Modal show={showModal} onClose={() => setShowModal(false)}>
+      {/* <Modal show={showModal} onClose={() => setShowModal(false)}>
         <div dangerouslySetInnerHTML={{ __html: templateHtml }} />
         <div className="flex justify-center">
           <button onClick={handlePrint} className="flex justify-center mt-4">
             Print
           </button>
         </div>
-      </Modal>
+      </Modal> */}
     </>
   );
 };
