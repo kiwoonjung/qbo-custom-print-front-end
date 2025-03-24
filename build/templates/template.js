@@ -17,6 +17,20 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     console.log("Loaded Invoice Data:", invoiceData);
 
+    const shipToNameElement = document.querySelector(".ship-to-content");
+
+    if (!shipToNameElement) {
+      console.error("Error : .ship-to-content not found in the DOM.");
+      return;
+    }
+
+    if (
+      invoiceData.Invoice.CustomerRef &&
+      invoiceData.Invoice.CustomerRef.name
+    ) {
+      shipToNameElement.innerHTML = invoiceData.Invoice.CustomerRef.name;
+    }
+
     // Ensure the item-table-container exists
     const itemTableContainer = document.querySelector(".item-table-container");
 

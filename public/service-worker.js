@@ -145,13 +145,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "getInvoice") {
     let { accessToken, realmId, invoiceId } = request; // Destructure the request
-    // Check if realmId is undefined and set it to "123"
-    // if (typeof realmId === "undefined") {
-    //   realmId = "9341454187481835";
-    //   console.log("realmId is undefined, setting it to '9341454187481835'");
-    // } else {
-    //   console.log("get realmId !!", realmId);
-    // }
 
     // Make a request to your backend server
     fetch(
@@ -169,6 +162,34 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       })
       .catch((error) => {
         console.error("Error fetching invoice:", error);
+        sendResponse({ success: false, error: error.message });
+      });
+
+    // Return true to indicate that sendResponse will be called asynchronously
+    return true;
+  }
+});
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "getCustomer") {
+    let { accessToken, realmId, customerId } = request; // Destructure the request
+
+    // Make a request to your backend server
+    fetch(
+      `http://localhost:8000/customer?accessToken=${accessToken}&realmId=${realmId}&customerId=${customerId}`
+    )
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json(); // Parse the response as JSON
+      })
+      .then((data) => {
+        console.log("Response Data:", data); // Log the response data
+        sendResponse({ success: true, data });
+      })
+      .catch((error) => {
+        console.error("Error fetching a customer:", error);
         sendResponse({ success: false, error: error.message });
       });
 

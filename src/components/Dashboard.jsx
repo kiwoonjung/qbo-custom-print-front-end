@@ -34,9 +34,33 @@ const Dashboard = ({ handleLogout }) => {
         );
       });
 
+      let customerId;
+
       if (response.success) {
         chrome.storage.local.set({ invoiceData: response.data }, async () => {
           console.log("Stored invoice data:", response.data);
+          if (
+            response.data.Invoice.CustomerRef &&
+            response.data.Invoice.CustomerRef.value
+          ) {
+            customerId = response.data.Invoice.CustomerRef.value;
+          }
+
+          const customerResponse = await new Promise((resolve) => {
+            chrome.runtime.sendMessage(
+              { action: "getCustomer", accessToken, realmId, customerId },
+              resolve
+            );
+          });
+
+          if (response.success) {
+            chrome.storage.local.set(
+              { customerData: customerResponse.data },
+              async () => {
+                console.log("Stored customer data:", customerResponse.data);
+              }
+            );
+          }
 
           // Wait for the template to load
           const loadedTemplate = await loadTemplate();
@@ -128,16 +152,6 @@ const Dashboard = ({ handleLogout }) => {
           <button onClick={handleGetData}>Create Custom Invoice</button>
         )}
       </div>
-
-      {/* Modal Component */}
-      {/* <Modal show={showModal} onClose={() => setShowModal(false)}>
-        <div dangerouslySetInnerHTML={{ __html: templateHtml }} />
-        <div className="flex justify-center">
-          <button onClick={handlePrint} className="flex justify-center mt-4">
-            Print
-          </button>
-        </div>
-      </Modal> */}
     </>
   );
 };
