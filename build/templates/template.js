@@ -15,21 +15,58 @@ document.addEventListener("DOMContentLoaded", async function () {
       return;
     }
 
-    console.log("Loaded Invoice Data:", invoiceData);
+    // console.log("Loaded Invoice Data:", invoiceData);
 
-    const shipToNameElement = document.querySelector(".ship-to-content");
+    const slipNumElement = document.querySelector(".slip-no");
+    slipNumElement.innerHTML = invoiceData.Invoice.DocNumber;
 
-    if (!shipToNameElement) {
-      console.error("Error : .ship-to-content not found in the DOM.");
-      return;
-    }
+    const shipDateElement = document.querySelector(".ship-date");
+    shipDateElement.innerHTML = invoiceData.Invoice.ShipDate
+      ? invoiceData.Invoice.ShipDate
+      : "";
 
-    if (
-      invoiceData.Invoice.CustomerRef &&
-      invoiceData.Invoice.CustomerRef.name
-    ) {
-      shipToNameElement.innerHTML = invoiceData.Invoice.CustomerRef.name;
-    }
+    const poNumElement = document.querySelector(".po-number");
+
+    const poNumberField = invoiceData.Invoice.CustomField.find(
+      (field) => field.Name === "P.O. Number"
+    );
+
+    // Accessing the StringValue correctly
+    poNumElement.innerHTML =
+      poNumberField && poNumberField.StringValue
+        ? poNumberField.StringValue
+        : "";
+
+    chrome.storage.local.get("shippingAddress", function (data) {
+      const shipToNameElement = document.querySelector(".ship-to-address");
+      // Replace newline characters with <br> tags
+      const formattedAddress = data.shippingAddress.replace(/\n/g, "<br>");
+      shipToNameElement.innerHTML = formattedAddress;
+    });
+
+    const carrierNameElement = document.querySelector(".carrier-to-content");
+    carrierNameElement.innerHTML = invoiceData.Invoice.ShipMethodRef
+      ? invoiceData.Invoice.ShipMethodRef.name
+      : "";
+
+    const carrierBottomNameElement = document.querySelector(".carrier-name");
+    carrierBottomNameElement.innerHTML = invoiceData.Invoice.ShipMethodRef
+      ? invoiceData.Invoice.ShipMethodRef.name
+      : "";
+
+    const shippingTrackNumber = document.querySelector(
+      ".carrier-to-track-number"
+    );
+    shippingTrackNumber.innerHTML = invoiceData.Invoice.TrackingNum
+      ? invoiceData.Invoice.TrackingNum
+      : "";
+
+    chrome.storage.local.get("shippingAddress", function (data) {
+      const consigneeNameElement = document.querySelector(".consignee-name");
+      // Split the address by newline and take the first line
+      const firstLine = data.shippingAddress.split("\n")[0];
+      consigneeNameElement.innerHTML = firstLine;
+    });
 
     // Ensure the item-table-container exists
     const itemTableContainer = document.querySelector(".item-table-container");
@@ -108,7 +145,8 @@ document.addEventListener("DOMContentLoaded", async function () {
       }
     }
 
+    addEmptyRowIfNeeded();
     // Give some time for DOM to render then calculate heights
-    setTimeout(addEmptyRowIfNeeded, 100);
+    // setTimeout(() => {}, 100);
   });
 });

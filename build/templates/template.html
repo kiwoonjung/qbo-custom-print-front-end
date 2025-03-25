@@ -38,15 +38,15 @@
           <h1 class="bol-info-title">Bill of Lading</h1>
           <div class="bol-info-flex">
             <h5>BL & Packing Slip No.</h5>
-            <h5 class="Slip No">7881-3</h5>
+            <h5 class="slip-no"></h5>
           </div>
           <div class="bol-info-flex">
             <h5>Ship Date</h5>
-            <h5>2024/3/10</h5>
+            <h5 class="ship-date"></h5>
           </div>
           <div class="bol-info-flex">
             <h5>P.O. No.</h5>
-            <h5>19911</h5>
+            <h5 class="po-number"></h5>
           </div>
         </div>
       </div>
@@ -57,17 +57,16 @@
             <h3 class="ship-to-title"><strong>Ship To</strong></h3>
             <h3 class="ship-to-content"></h3>
           </div>
-          <h4 class="ship-to-address">
-            Yeung's Architects 4895 King Edward Ave. Barrie ON M2H 4G4
-          </h4>
+          <h4 class="ship-to-address"></h4>
         </div>
 
         <div class="carrier-to-container">
           <div class="carrier-text-container">
             <h3 class="carrier-to-title"><strong>Carrier</strong></h3>
-            <h3 class="carrier-to-content">
-              <strong>Speedee Transport</strong>
-            </h3>
+            <div class="carrier-to-content-container">
+              <h3 class="carrier-to-content"></h3>
+              <h4 class="carrier-to-track-number"></h4>
+            </div>
           </div>
           <h3 class="carrier-to-freight-charges text-center">
             <strong>FREIGHT CHARGES</strong>
@@ -155,14 +154,14 @@
         <div class="carrier-container">
           <h5 class="carrier-title"><strong>Carrier:</strong></h5>
           <div class="carrier-name-container">
-            <h5 class="carrier-name">Speedee Transport</h5>
+            <h5 class="carrier-name"></h5>
           </div>
         </div>
 
         <div class="consignee-container">
           <h5 class="consignee-title"><strong>Consignee:</strong></h5>
           <div class="consingee-input-container">
-            <input class="consignee-input" />
+            <h5 class="consignee-name"></h5>
           </div>
         </div>
       </div>
@@ -227,6 +226,10 @@
   textarea {
     border: none;
     resize: none;
+  }
+
+  #container {
+    display: none;
   }
 
   .container {
@@ -308,7 +311,6 @@
     border: 1px solid #000000;
   }
 
-  .ship-to-title,
   .carrier-to-title {
     border-right: 1px solid #000000;
   }
@@ -316,6 +318,10 @@
   .ship-to-title,
   .ship-to-address {
     padding: 10px;
+  }
+
+  .ship-to-address {
+    line-height: 20px;
   }
 
   .carrier-to-title {
@@ -554,6 +560,7 @@
     padding: 10px 10px 10px 0;
     font-size: 1rem;
     text-align: center;
+    font-weight: 800;
   }
 
   .seal-input {
@@ -561,6 +568,7 @@
     padding: 10px 10px 10px 0;
     font-size: 1rem;
     text-align: center;
+    font-weight: 800;
   }
 
   .carrier-text-container,
@@ -568,6 +576,9 @@
     display: flex;
     align-items: center;
     border-bottom: 1px solid #000000;
+  }
+  .carrier-to-content {
+    font-weight: 800;
   }
 
   .carrier-to-content,
@@ -642,15 +653,29 @@
   }
 
   .item-table-header.code {
-    width: 158px;
+    width: 200px;
   }
 
   .item-table-header.desc {
-    width: 476px;
+    width: 441px;
   }
 
   .item-table-header.qty,
   .item-table-header.weight {
     width: 81px;
+  }
+
+  .carrier-to-content-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+  }
+
+  .consignee-name {
+    padding: 10px;
+    text-align: center;
+    width: 100%;
+    font-size: 0.9rem;
   }
 </style>

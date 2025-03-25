@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import Modal from "./Modal"; // Import the modal component
 
 const Dashboard = ({ handleLogout }) => {
   const [showGetDataButton, setShowGetDataButton] = useState(false);
@@ -25,7 +24,7 @@ const Dashboard = ({ handleLogout }) => {
         return;
       }
 
-      console.log("Fetching invoice with ID:", invoiceId);
+      // console.log("Fetching invoice with ID:", invoiceId);
 
       const response = await new Promise((resolve) => {
         chrome.runtime.sendMessage(
@@ -34,40 +33,16 @@ const Dashboard = ({ handleLogout }) => {
         );
       });
 
-      let customerId;
-
       if (response.success) {
         chrome.storage.local.set({ invoiceData: response.data }, async () => {
-          console.log("Stored invoice data:", response.data);
-          if (
-            response.data.Invoice.CustomerRef &&
-            response.data.Invoice.CustomerRef.value
-          ) {
-            customerId = response.data.Invoice.CustomerRef.value;
-          }
-
-          const customerResponse = await new Promise((resolve) => {
-            chrome.runtime.sendMessage(
-              { action: "getCustomer", accessToken, realmId, customerId },
-              resolve
-            );
-          });
-
-          if (response.success) {
-            chrome.storage.local.set(
-              { customerData: customerResponse.data },
-              async () => {
-                console.log("Stored customer data:", customerResponse.data);
-              }
-            );
-          }
+          // console.log("Stored invoice data:", response.data);
 
           // Wait for the template to load
           const loadedTemplate = await loadTemplate();
 
           // Ensure the template is actually loaded before printing
           if (loadedTemplate) {
-            console.log("Template successfully loaded, printing...");
+            // console.log("Template successfully loaded, printing...");
             handlePrint();
           } else {
             console.error("Template HTML is still empty after loading.");
@@ -106,7 +81,7 @@ const Dashboard = ({ handleLogout }) => {
   useEffect(() => {
     chrome.runtime.sendMessage({ action: "getCurrentTabURL" }, (response) => {
       if (response && response.url) {
-        console.log("Current URL:", response.url);
+        // console.log("Current URL:", response.url);
 
         // Extract invoiceId using URL parameters
         const match = response.url.match(/[?&]txnId=(\d+)/);
@@ -124,7 +99,7 @@ const Dashboard = ({ handleLogout }) => {
 
   useEffect(() => {
     if (templateHtml) {
-      console.log("Template updated, now printing...");
+      // console.log("Template updated, now printing...");
       handlePrint();
     }
   }, [templateHtml]);
@@ -135,7 +110,7 @@ const Dashboard = ({ handleLogout }) => {
       return;
     }
 
-    console.log("Opening print preview with template:", templateHtml);
+    // console.log("Opening print preview with template:", templateHtml);
     window.open("/templates/template.html", "_blank");
   };
 
@@ -143,13 +118,13 @@ const Dashboard = ({ handleLogout }) => {
     <>
       {!showModal && (
         <div className="text-center">
-          <p className="text-2xl pb-4">Welcome to QBO Custom Print</p>
+          <p className="text-2xl pb-4">Welcome to QBO Custom Print!</p>
           <p className="pb-4">You are logged in!</p>
         </div>
       )}
       <div className="flex justify-center gap-2">
         {showGetDataButton && !showModal && (
-          <button onClick={handleGetData}>Create Custom Invoice</button>
+          <button onClick={handleGetData}>Create Bill of Lading</button>
         )}
       </div>
     </>

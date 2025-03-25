@@ -1,8 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "React Chrome Extension",
+  "name": "PFP Custom BOL",
   "version": "1.0.0",
-  "description": "A simple React app as a Chrome extension",
+  "description": "Pacific Fresh Produce BOL App",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
   "background": {
     "service_worker": "service-worker.js"
   },
@@ -15,7 +21,14 @@
       "matches": ["<all_urls>"]
     }
   ],
-  "permissions": ["identity", "storage", "tabs", "scripting"],
+  "permissions": [
+    "identity",
+    "storage",
+    "tabs",
+    "scripting",
+    "activeTab",
+    "scripting"
+  ],
   "host_permissions": [
     "https://oauth.platform.intuit.com/*",
     "https://quickbooks.api.intuit.com/*"
