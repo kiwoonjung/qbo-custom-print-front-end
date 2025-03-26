@@ -27,7 +27,8 @@
     "tabs",
     "scripting",
     "activeTab",
-    "scripting"
+    "scripting",
+    "https://qbo-custom-print-back-end.vercel.app/*"
   ],
   "host_permissions": [
     "https://oauth.platform.intuit.com/*",
