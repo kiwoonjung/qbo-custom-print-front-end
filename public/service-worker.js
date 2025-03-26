@@ -1,11 +1,17 @@
 // ✅ Check if the user is already authenticated before starting OAuth
-chrome.storage.local.get(["accessToken", "refreshToken", "realmId"], (data) => {
-  if (data.accessToken && data.realmId) {
-    console.log("✅ User is already authenticated with QuickBooks.");
-    return; // Stop OAuth process if user is already logged in
+chrome.storage.local.get(
+  ["accessToken", "refreshToken", "realmId"],
+  async (data) => {
+    if (data.accessToken && data.realmId) {
+      console.log("✅ User is already authenticated with QuickBooks.");
+      return; // Stop OAuth process if user is already logged in
+    }
+
+    // If no token, fetch it from the backend
+    await getAccessTokenFromBackend();
+    startOAuthFlow();
   }
-  startOAuthFlow();
-});
+);
 
 async function startOAuthFlow() {
   try {
@@ -66,6 +72,29 @@ async function exchangeCodeForToken(authorizationCode, redirectUri) {
     });
   } catch (error) {
     console.error("Error during token exchange:", error);
+  }
+}
+
+// ✅ Get access token from the backend
+async function getAccessTokenFromBackend() {
+  try {
+    const response = await fetch(
+      "https://qbo-custom-print-back-end.vercel.app/auth/get-access-token"
+    );
+
+    if (!response.ok)
+      throw new Error(`Failed to get access token: ${response.statusText}`);
+
+    const { access_token, realmId } = await response.json();
+
+    chrome.storage.local.set({
+      accessToken: access_token,
+      realmId,
+    });
+
+    return access_token; // Return the access token for use
+  } catch (error) {
+    console.error("Error fetching access token:", error);
   }
 }
 
