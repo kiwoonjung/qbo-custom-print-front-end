@@ -87,7 +87,7 @@ async function startOAuthFlow() {
 
     const { clientId } = await response.json();
     const redirectUri = chrome.identity.getRedirectURL();
-    const authUrl = `https://appcenter.intuit.com/connect/oauth2?client_id=${clientId}&response_type=code&scope=com.intuit.quickbooks.accounting openid email offline_access&redirect_uri=${redirectUri}&state=chrome_extension`;
+    const authUrl = `https://appcenter.intuit.com/connect/oauth2?client_id=${clientId}&response_type=code&scope=com.intuit.quickbooks.accounting&redirect_uri=${redirectUri}&state=chrome_extension`;
 
     chrome.identity.launchWebAuthFlow(
       { url: authUrl, interactive: true },

@@ -6,77 +6,22 @@ chrome.storage.local.get(
 
     if (data.accessToken && data.realmId) {
       console.log("✅ User is already authenticated.");
-      // Check token validity
-      const isTokenValid = await checkTokenValidity(data.accessToken);
-      if (isTokenValid) {
-        console.log("✅ Token is valid, proceeding...");
-        return; // Token is valid, no need to re-authenticate
-      } else {
-        console.log("⚠️ Token expired, refreshing token...");
-        await refreshAccessToken(data.refreshToken); // Refresh the token
-        return;
-      }
+      return; // Stop OAuth process if user is already logged in
     }
 
     console.log("⚠️ No stored tokens. Fetching from backend...");
+
     const accessToken = await getAccessTokenFromBackend();
 
     if (accessToken) {
       console.log("✅ Token retrieved from backend. Skipping OAuth.");
-      return; // Token is retrieved from the backend
+      return; // Stop OAuth process if we got a token
     }
 
     console.log("🚀 Starting OAuth flow...");
     startOAuthFlow();
   }
 );
-
-async function checkTokenValidity(accessToken) {
-  // Simple check to see if the token is valid (could be improved)
-  try {
-    const response = await fetch(
-      "https://qbo-custom-print-back-end.vercel.app/auth/check-token",
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
-    return response.ok;
-  } catch (error) {
-    console.error("Error checking token validity:", error);
-    return false;
-  }
-}
-
-async function refreshAccessToken(refreshToken) {
-  try {
-    const response = await fetch(
-      "https://qbo-custom-print-back-end.vercel.app/auth/refresh-token",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refreshToken }),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Failed to refresh token: ${response.statusText}`);
-    }
-
-    const { access_token, refresh_token, realmId } = await response.json();
-    chrome.storage.local.set({
-      accessToken: access_token,
-      refreshToken: refresh_token,
-      realmId,
-    });
-    console.log("✅ Tokens refreshed and stored.");
-  } catch (error) {
-    console.error("Error refreshing tokens:", error);
-  }
-}
-
 async function startOAuthFlow() {
   try {
     const response = await fetch(
@@ -87,7 +32,7 @@ async function startOAuthFlow() {
 
     const { clientId } = await response.json();
     const redirectUri = chrome.identity.getRedirectURL();
-    const authUrl = `https://appcenter.intuit.com/connect/oauth2?client_id=${clientId}&response_type=code&scope=com.intuit.quickbooks.accounting openid email offline_access&redirect_uri=${redirectUri}&state=chrome_extension`;
+    const authUrl = `https://appcenter.intuit.com/connect/oauth2?client_id=${clientId}&response_type=code&scope=com.intuit.quickbooks.accounting&redirect_uri=${redirectUri}&state=chrome_extension`;
 
     chrome.identity.launchWebAuthFlow(
       { url: authUrl, interactive: true },
@@ -151,21 +96,14 @@ async function getAccessTokenFromBackend() {
 
     const { access_token, realmId } = await response.json();
 
-    if (!access_token || !realmId) {
-      console.error("❌ Backend did not return valid tokens!");
-      return null;
-    }
-
-    console.log("📥 Storing tokens in chrome.storage.local...");
-    await chrome.storage.local.set({
+    chrome.storage.local.set({
       accessToken: access_token,
       realmId,
     });
 
-    return access_token; // Return for verification
+    return access_token; // Return the access token for use
   } catch (error) {
-    console.error("❌ Error fetching access token:", error);
-    return null;
+    console.error("Error fetching access token:", error);
   }
 }
 
