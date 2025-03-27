@@ -22,7 +22,6 @@ chrome.storage.local.get(
     startOAuthFlow();
   }
 );
-
 async function startOAuthFlow() {
   try {
     const response = await fetch(
@@ -33,7 +32,7 @@ async function startOAuthFlow() {
 
     const { clientId } = await response.json();
     const redirectUri = chrome.identity.getRedirectURL();
-    const authUrl = `https://appcenter.intuit.com/connect/oauth2?client_id=${clientId}&response_type=code&scope=com.intuit.quickbooks.accounting&redirect_uri=${redirectUri}&state=chrome_extension`;
+    const authUrl = `https://appcenter.intuit.com/connect/oauth2?client_id=${clientId}&response_type=code&scope=com.intuit.quickbooks.accounting openid email offline_access&redirect_uri=${redirectUri}&state=chrome_extension`;
 
     chrome.identity.launchWebAuthFlow(
       { url: authUrl, interactive: true },
@@ -97,14 +96,21 @@ async function getAccessTokenFromBackend() {
 
     const { access_token, realmId } = await response.json();
 
-    chrome.storage.local.set({
+    if (!access_token || !realmId) {
+      console.error("❌ Backend did not return valid tokens!");
+      return null;
+    }
+
+    console.log("📥 Storing tokens in chrome.storage.local...");
+    await chrome.storage.local.set({
       accessToken: access_token,
       realmId,
     });
 
-    return access_token; // Return the access token for use
+    return access_token; // Return for verification
   } catch (error) {
-    console.error("Error fetching access token:", error);
+    console.error("❌ Error fetching access token:", error);
+    return null;
   }
 }
 
