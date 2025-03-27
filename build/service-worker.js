@@ -6,22 +6,77 @@ chrome.storage.local.get(
 
     if (data.accessToken && data.realmId) {
       console.log("✅ User is already authenticated.");
-      return; // Stop OAuth process if user is already logged in
+      // Check token validity
+      const isTokenValid = await checkTokenValidity(data.accessToken);
+      if (isTokenValid) {
+        console.log("✅ Token is valid, proceeding...");
+        return; // Token is valid, no need to re-authenticate
+      } else {
+        console.log("⚠️ Token expired, refreshing token...");
+        await refreshAccessToken(data.refreshToken); // Refresh the token
+        return;
+      }
     }
 
     console.log("⚠️ No stored tokens. Fetching from backend...");
-
     const accessToken = await getAccessTokenFromBackend();
 
     if (accessToken) {
       console.log("✅ Token retrieved from backend. Skipping OAuth.");
-      return; // Stop OAuth process if we got a token
+      return; // Token is retrieved from the backend
     }
 
     console.log("🚀 Starting OAuth flow...");
     startOAuthFlow();
   }
 );
+
+async function checkTokenValidity(accessToken) {
+  // Simple check to see if the token is valid (could be improved)
+  try {
+    const response = await fetch(
+      "https://qbo-custom-print-back-end.vercel.app/auth/check-token",
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    return response.ok;
+  } catch (error) {
+    console.error("Error checking token validity:", error);
+    return false;
+  }
+}
+
+async function refreshAccessToken(refreshToken) {
+  try {
+    const response = await fetch(
+      "https://qbo-custom-print-back-end.vercel.app/auth/refresh-token",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to refresh token: ${response.statusText}`);
+    }
+
+    const { access_token, refresh_token, realmId } = await response.json();
+    chrome.storage.local.set({
+      accessToken: access_token,
+      refreshToken: refresh_token,
+      realmId,
+    });
+    console.log("✅ Tokens refreshed and stored.");
+  } catch (error) {
+    console.error("Error refreshing tokens:", error);
+  }
+}
+
 async function startOAuthFlow() {
   try {
     const response = await fetch(

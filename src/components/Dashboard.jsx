@@ -24,33 +24,43 @@ const Dashboard = ({ handleLogout }) => {
         return;
       }
 
-      // console.log("Fetching invoice with ID:", invoiceId);
+      console.log("Fetching invoice with ID:", invoiceId);
 
-      const response = await new Promise((resolve) => {
-        chrome.runtime.sendMessage(
-          { action: "getInvoice", accessToken, realmId, invoiceId },
-          resolve
-        );
-      });
+      // Call the QuickBooks API to get invoice data
+      const response = await fetch(
+        `https://quickbooks.api.intuit.com/v3/company/${realmId}/invoice/${invoiceId}/?minorversion=75`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: "application/json",
+          },
+        }
+      );
 
-      if (response.success) {
-        chrome.storage.local.set({ invoiceData: response.data }, async () => {
-          // console.log("Stored invoice data:", response.data);
-
-          // Wait for the template to load
-          const loadedTemplate = await loadTemplate();
-
-          // Ensure the template is actually loaded before printing
-          if (loadedTemplate) {
-            // console.log("Template successfully loaded, printing...");
-            handlePrint();
-          } else {
-            console.error("Template HTML is still empty after loading.");
-          }
-        });
-      } else {
-        console.error("Failed to fetch invoice data.");
+      if (!response.ok) {
+        console.error("Failed to fetch invoice data:", response.statusText);
+        return;
       }
+
+      const invoiceData = await response.json();
+      console.log("Fetched Invoice Data:", invoiceData);
+
+      // Store invoice data in Chrome local storage
+      chrome.storage.local.set({ invoiceData }, async () => {
+        console.log("Stored invoice data:", invoiceData);
+
+        // Wait for the template to load
+        const loadedTemplate = await loadTemplate();
+
+        // Ensure the template is actually loaded before printing
+        if (loadedTemplate) {
+          console.log("Template successfully loaded, printing...");
+          handlePrint();
+        } else {
+          console.error("Template HTML is still empty after loading.");
+        }
+      });
     } catch (error) {
       console.error("Error fetching invoice:", error);
     }
