@@ -2,17 +2,26 @@
 chrome.storage.local.get(
   ["accessToken", "refreshToken", "realmId"],
   async (data) => {
+    console.log("🔍 Retrieved stored tokens:", data); // Debugging
+
     if (data.accessToken && data.realmId) {
-      console.log("✅ User is already authenticated with QuickBooks.");
+      console.log("✅ User is already authenticated.");
       return; // Stop OAuth process if user is already logged in
     }
 
-    // If no token, fetch it from the backend
-    await getAccessTokenFromBackend();
+    console.log("⚠️ No stored tokens. Fetching from backend...");
+
+    const accessToken = await getAccessTokenFromBackend();
+
+    if (accessToken) {
+      console.log("✅ Token retrieved from backend. Skipping OAuth.");
+      return; // Stop OAuth process if we got a token
+    }
+
+    console.log("🚀 Starting OAuth flow...");
     startOAuthFlow();
   }
 );
-
 async function startOAuthFlow() {
   try {
     const response = await fetch(
@@ -87,14 +96,21 @@ async function getAccessTokenFromBackend() {
 
     const { access_token, realmId } = await response.json();
 
-    chrome.storage.local.set({
+    if (!access_token || !realmId) {
+      console.error("❌ Backend did not return valid tokens!");
+      return null;
+    }
+
+    console.log("📥 Storing tokens in chrome.storage.local...");
+    await chrome.storage.local.set({
       accessToken: access_token,
       realmId,
     });
 
-    return access_token; // Return the access token for use
+    return access_token; // Return for verification
   } catch (error) {
-    console.error("Error fetching access token:", error);
+    console.error("❌ Error fetching access token:", error);
+    return null;
   }
 }
 

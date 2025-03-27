@@ -2,13 +2,23 @@
 chrome.storage.local.get(
   ["accessToken", "refreshToken", "realmId"],
   async (data) => {
+    console.log("🔍 Retrieved stored tokens:", data); // Debugging
+
     if (data.accessToken && data.realmId) {
-      console.log("✅ User is already authenticated with QuickBooks.");
+      console.log("✅ User is already authenticated.");
       return; // Stop OAuth process if user is already logged in
     }
 
-    // If no token, fetch it from the backend
-    await getAccessTokenFromBackend();
+    console.log("⚠️ No stored tokens. Fetching from backend...");
+
+    const accessToken = await getAccessTokenFromBackend();
+
+    if (accessToken) {
+      console.log("✅ Token retrieved from backend. Skipping OAuth.");
+      return; // Stop OAuth process if we got a token
+    }
+
+    console.log("🚀 Starting OAuth flow...");
     startOAuthFlow();
   }
 );
